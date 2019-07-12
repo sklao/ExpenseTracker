@@ -5,6 +5,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using ExpenseTracker.Models;
+using ExpenseTracker.Services;
+using ExpenseTracker.Repository;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace ExpenseTracker
 {
@@ -24,10 +27,23 @@ namespace ExpenseTracker
             //services.AddDbContext<ExpenseTrackerContext>(opt =>
             //    opt.UseSqlServer(sqlConnection));
 
+            //services.AddEntityFrameworkInMemoryDatabase().
+            //    AddDbContext<ExpenseTrackerContext>();
+
             services.AddDbContext<ExpenseTrackerContext>(opt =>
-                opt.UseInMemoryDatabase("ExpenseTracker"));
+                opt.UseInMemoryDatabase("ExpenseTracker"),ServiceLifetime.Scoped);
+
+            services.AddTransient<IExpenseItemRepository, ExpenseItemRepository>();
+            services.AddTransient<IExpenseItemService, ExpenseItemService>();
+
+
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new Info { Title = "Expense Tracker API", Version = "v1" });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -44,7 +60,18 @@ namespace ExpenseTracker
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
+            app.ApplicationServices.GetService<System.IDisposable>();
+
+            // Enable middleware to serve generated Swagger as a JSON endpoint.
+            app.UseSwagger();
+
+            // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.),
+            // specifying the Swagger JSON endpoint.
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Expense Tracker V1");
+            });
 
             app.UseMvc();
         }

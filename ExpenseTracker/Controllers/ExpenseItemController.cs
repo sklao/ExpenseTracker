@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ExpenseTracker.Models;
 using Newtonsoft.Json;
+using ExpenseTracker.Services;
 
 namespace ExpenseTracker.Controllers
 {
@@ -13,47 +14,69 @@ namespace ExpenseTracker.Controllers
     [ApiController]
     public class ExpenseItemController : ControllerBase
     {
-        ExpenseTrackerContext _context;
+        IExpenseItemService _expenseItemService;
 
-        //Contructor
-        public ExpenseItemController(ExpenseTrackerContext context)
+        public ExpenseItemController(IExpenseItemService expenseItemService)
         {
-            _context = context;
+            _expenseItemService = expenseItemService ?? throw new ArgumentNullException(nameof(expenseItemService));
         }
 
+
         [HttpGet("all")]
-        public  ActionResult<IEnumerable<ExpenseItem>> AllExpenseItems() 
+        public async Task<IEnumerable<ExpenseItem>> AllExpenseItems() 
         {
-            if (_context.ExpenseItems.Count<ExpenseItem>() == 0)
-            {
-                return BadRequest();
-            }
-            return _context.ExpenseItems;
+            //if (_context.ExpenseItems.Count<ExpenseItem>() == 0)
+            //{
+            //    return BadRequest();
+            //}
+            //return _context.ExpenseItems;
+
+            return await _expenseItemService.ReadAllAsync();
         }
 
         // GET: ExpenseItem
         [HttpGet("{id}")]
-        public async Task<ActionResult<ExpenseItem>> GetExpenseItem(long id)
+        public async Task<ActionResult<ExpenseItem>> GetExpenseItem(int id)
         {
-            var expenseItem = await _context.ExpenseItems.FindAsync(id);
+            //var expenseItem = await _context.ExpenseItems.FindAsync(id);
 
-            if (expenseItem == null)
-            {
-                NotFound();
-            }
+            //if (expenseItem == null)
+            //{
+            //    NotFound();
+            //}
 
-            return expenseItem;
+            //return expenseItem;
+            return await _expenseItemService.GetAsync(id);
         }
-        
 
         // PUT: ExpenseItem
-        [HttpPut("Create")]
-        public async Task<ActionResult<ExpenseItem>> Create(ExpenseItem item)
+        [HttpPost("Add")]
+        public async Task<ActionResult<int>> Add(ExpenseItem item)
         {
-            _context.ExpenseItems.Add(item);
-            await _context.SaveChangesAsync();
+            //_context.ExpenseItems.Add(item);
+            //await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetExpenseItem), new { id = item.Id }, item);
+            //return CreatedAtAction(nameof(GetExpenseItem), new { id = item.Id }, item);
+
+            return await _expenseItemService.CreateAsync(item);
+        }
+
+        // PUT: ExpenseItem
+        [HttpPut("Update")]
+        public async Task<ActionResult<int>> Update(ExpenseItem item)
+        {
+            //_context.ExpenseItems.Add(item);
+            //await _context.SaveChangesAsync();
+
+            //return CreatedAtAction(nameof(GetExpenseItem), new { id = item.Id }, item);
+
+            return await _expenseItemService.UpdateAsync(item);
+        }
+
+        [HttpDelete("Delete/{id}")]
+        public async Task<ActionResult<bool>> Delete(int id)
+        {
+            return await _expenseItemService.DeleteAsync(id);
         }
 
     }
